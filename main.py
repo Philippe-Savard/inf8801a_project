@@ -1,89 +1,91 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Oct  8 20:39:14 2021
-
 @author: Philippe Savard
 """
 
 """ IMPORTS """
 import cv2
 import numpy as np
-#import matplotlib.pyplot as plt
-from skimage import data
-from skimage.feature import Cascade
-from imutils.video import WebcamVideoStream
-#from imutils import face_utils
-#import dlib
+from imutils import face_utils
+import dlib
+
+EMOTIONS = ["Angry", "Disgust", "Fear", "Happy", "Neutral", "Sad", "Surprise", "NONE"]
 
 cv2.namedWindow("Facial Emotion Detection")
 
-""" LBP FACE DETECTOR"""
+""" DLIB FACE DETECTOR AND KEYPOINTS PREDICTOR """
+detector = dlib.get_frontal_face_detector()
 
-# Load the trained file from the module root.
-trained_file = data.lbp_frontal_face_cascade_filename()
-
-# Initialize the detector cascade.
-detector = Cascade(trained_file)
+p = "shape_predictor_68_face_landmarks.dat"
+predictor = dlib.shape_predictor(p)
 
 """WEBCAM INPUT"""
-
-webcam = WebcamVideoStream(src=0).start()
-
-# Reduces lag for face detection. Higher values reduces lag significantly but also decrease accuracy
-RES_FACTOR = 4 
+webcam = cv2.VideoCapture(0)
 
 while True:
-    #Read frames from the webcam 
-    frame = webcam.read()
     
-    # Extracting original frame's dimensions
-    h, w, c = frame.shape
+    # Read frames from the webcam 
+    _, frame = webcam.read()
     
-    nCol = 0
-    nRow = 0
-    nWidth = w
-    nHeight = h   
+    # Converting the frame into the grayscale color space
+    grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    # Resize the frame for better performances
-    resizedFrame = cv2.resize(frame, (int(w/RES_FACTOR), int(h/RES_FACTOR)))
-    grayFrame = cv2.cvtColor(resizedFrame, cv2.COLOR_BGR2GRAY)
+    # Detect faces in the grayscale image
+    faces = detector(grayFrame, 0)
     
-    key = cv2.waitKey(20) # wait for space key to start
-    if True:#key == 32: # For 
+    # For all faces in the frame
+    for (i, face) in enumerate(faces):
         
-        # Converting to array for computation
-        img = np.array(grayFrame)
-
-        detected = detector.detect_multi_scale(img,
-                                           scale_factor=1.2,
-                                           step_ratio=1,
-                                           min_neighbour_number=10,
-                                           min_size=(30, 30),
-                                           max_size=(220, 220))
+        # Finding the facial landmarks 
+        landmarks = predictor(grayFrame, face)
         
-        # Draw a rectangle around the face region
-        for d in detected:
-            nCol = d["c"] * RES_FACTOR
-            nRow = d["r"] * RES_FACTOR
-            nWidth = d["width"] * RES_FACTOR
-            nHeight = d["height"] * RES_FACTOR
+        # Converts the landmarks into a 2D numpy array of x, y coordinnates
+        landmarks = face_utils.shape_to_np(landmarks)
+    
+        minX = landmarks[i][0]
+        maxX = landmarks[i][0]
+        minY = landmarks[i][1]
+        maxY = landmarks[i][1]
+        
+        # Draw the landmarks (dots) on the preview image
+        for (x, y) in landmarks:
             
-            cv2.rectangle(frame, (nCol, nRow), (nCol + nWidth, nRow + nHeight),(0, 255, 0), 2)
-                  
-    # Extract region of interest (the face) from the img             
-    roi = frame[nRow : nRow + nHeight, nCol : nCol + nWidth ]        
+            # Update the keypoints boundaries
+            if minX > x: minX = x
+            if maxX < x: maxX = x
+            if minY > y: minY = y
+            if maxY < y: maxY = y
+            
+            cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
+        
+        # Draw the boundary around the face
+        cv2.rectangle(frame,(minX, maxY),(maxX, minY),(0, 255, 0), 1)
+        
+        # Extract region of interest (the face) from the frame             
+        roi = grayFrame[minY : maxY, minX : maxX]   
+        
+        # Resizing the input for it to be 48x48 
+        resizedRoi = cv2.resize(roi, (48,48))
+    
+        # Normalizing the region using MinMax normalization. Ready to input into the trained BasicNet CNN
+        normRoi = cv2.normalize(resizedRoi, resizedRoi, np.min(resizedRoi), np.max(resizedRoi), cv2.NORM_MINMAX)
+        
+        # TODO : For each faces get the estimated emotion (from 0 to 7)
+        result = 7
+        
+        # Display the emotion based on the network response. 
+        cv2.putText(frame, EMOTIONS[result], (minX, maxY + 18), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
+        
+        # Display the face region after normalization
+        cv2.imshow("FACE ROI #" + str(i), normRoi)
     
     cv2.imshow("Facial Emotion Detection", frame)
-    cv2.imshow("FACE ROI", roi)
-    
    
     #Wait for ESC key input to close application
     key = cv2.waitKey(20) 
     if key == 27: # exit on ESC
         break
     
-    
-webcam.stop()
 
-cv2.destroyWindow("Facial Emotion Detection")
-cv2.destroyWindow("FACE ROI")
+webcam.release()
+cv2.destroyAllWindows()
