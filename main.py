@@ -7,6 +7,7 @@ import numpy as np
 from imutils import face_utils
 import dlib
 from neuralnetwork.EmotionsNetwork import EmotionsNetwork
+from tensorflow.keras.utils import plot_model
 
 # Classified emotions
 EMOTIONS = ["Angry", "Disgust", "Fear", "Happy", "Neutral", "Sad", "Surprise", "NONE"]
@@ -15,9 +16,11 @@ print("[INFO] Scanning for trained neural networks...")
 
 # Load trained model 
 cnn = EmotionsNetwork()
+cnn_landmarks_model = cnn.get_cnn_landmarks_model()
+cnn_landmarks_model.summary()
 cnn_only_model = cnn.get_cnn_only_model()
 cnn_only_model.summary()
-
+plot_model(cnn_landmarks_model)
 # DLIB FACE DETECTOR AND KEYPOINTS PREDICTOR 
 detector = dlib.get_frontal_face_detector()
 
