@@ -13,11 +13,13 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Input
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.models import load_model
+from tensorflow.data import Dataset
 from datetime import datetime
 from os import path
 from keras.models import Model
-
-NB_EPOCHS = 1
+import numpy as np
+from tensorflow.data import AUTOTUNE
+NB_EPOCHS = 200
 BATCH_SIZE = 128
 TARGET_SIZE = (48, 48)
 INPUT_SHAPE = (48, 48, 1)
@@ -29,6 +31,17 @@ COLOR_MODE = 'grayscale'
 CNN_ONLY_PATH = 'neuralnetwork/models/cnn_only_model'
 CNN_LANDMARKS_PATH = 'neuralnetwork/models/cnn_landmarks_model'
 CNN_LANDMARKS_HOG_PATH = 'neuralnetwork/models/cnn_landmarks_hog_model'
+
+TRAIN_IMAGES_PATH = 'dataset/ExtractedData/train/images.npy'
+TRAIN_LABELS_PATH = 'dataset/ExtractedData/train/labels.npy'
+
+TRAIN_LANDMARKS_DATA_PATH = 'dataset/ExtractedData/train/landmarks.npy'
+
+TEST_IMAGES_PATH = 'dataset/ExtractedData/test/images.npy'
+TEST_LABELS_PATH = 'dataset/ExtractedData/test/labels.npy'
+
+TEST_LANDMARKS_DATA_PATH = 'dataset/ExtractedData/test/landmarks.npy'
+
 
 class EmotionsNetwork:
     """
@@ -48,26 +61,48 @@ class EmotionsNetwork:
         """
             Default constructor for the EmotionsNetwork class.
         """
-        self.__train = ImageDataGenerator(rescale=PIXEL_SCALE)
-        self.__test  = ImageDataGenerator(rescale=PIXEL_SCALE)
+        # self.__train = ImageDataGenerator(rescale=PIXEL_SCALE)
+        # self.__test  = ImageDataGenerator(rescale=PIXEL_SCALE)
         
         # Training portion of the dataset contains approx. 80% of the complete dataset
-        self._train_dataset = self.__train.flow_from_directory(trainingdata_path,
-                                                               color_mode=COLOR_MODE,
-                                                               target_size=TARGET_SIZE, 
-                                                               batch_size=BATCH_SIZE, 
-                                                               class_mode=CLASS_MODE)
+        #self._train_dataset = self.__train.flow_from_directory(trainingdata_path,
+        #                                                       color_mode=COLOR_MODE,
+        #                                                       target_size=TARGET_SIZE, 
+        #                                                       batch_size=BATCH_SIZE, 
+        #                                                       class_mode=CLASS_MODE)
 
         # Testing portion of the dataset contains approx. 20% of the complete dataset
-        self._test_dataset = self.__test.flow_from_directory(testingdata_path, 
-                                                             color_mode=COLOR_MODE,
-                                                             target_size=TARGET_SIZE, 
-                                                             batch_size=BATCH_SIZE, 
-                                                             class_mode=CLASS_MODE)
+        #self._test_dataset = self.__test.flow_from_directory(testingdata_path, 
+        #                                                     color_mode=COLOR_MODE,
+        #                                                     target_size=TARGET_SIZE, 
+        #                                                     batch_size=BATCH_SIZE, 
+        #                                                     class_mode=CLASS_MODE)
         
+        self._train_dataset = Dataset.from_tensor_slices(({'ConvInput':np.load(TRAIN_IMAGES_PATH)},
+                                                           np.load(TRAIN_LABELS_PATH)))
+        self._train_dataset = (self._train_dataset
+                               .shuffle(1024)
+                               .prefetch(AUTOTUNE))
+        self._test_dataset = Dataset.from_tensor_slices(({'ConvInput':np.load(TEST_IMAGES_PATH)},
+                                                          np.load(TEST_LABELS_PATH)))
+        self._train_dataset = (self._test_dataset
+                               .shuffle(1024)
+                               .prefetch(AUTOTUNE))
+        self._train_landmarks_dataset = Dataset.from_tensor_slices(({'ConvInput':np.load(TRAIN_IMAGES_PATH),
+                                                                     'LandmarksInput':np.load(TRAIN_LANDMARKS_DATA_PATH)},
+                                                                     np.load(TRAIN_LABELS_PATH)))
+        self._train_landmarks_dataset = (self._train_landmarks_dataset
+                                          .shuffle(1024)
+                                          .prefetch(AUTOTUNE))
+        self._test_landmarks_dataset = Dataset.from_tensor_slices(({'ConvInput':np.load(TEST_IMAGES_PATH),
+                                                                     'LandmarksInput':np.load(TEST_LANDMARKS_DATA_PATH)},
+                                                                     np.load(TEST_LABELS_PATH)))
+        self._test_landmarks_dataset = (self._test_landmarks_dataset
+                                          .shuffle(1024)
+                                          .prefetch(AUTOTUNE))
         # Build all the models 
         self.cnn_only_model = self.__build_cnn_only_model()
-        self.cnn_landmarks_model = self.__build_cnn_landmarks_model()
+        #self.cnn_landmarks_model = self.__build_cnn_landmarks_model()
     
     def __build_cnn_only_model(self):
         
@@ -81,7 +116,8 @@ class EmotionsNetwork:
         # CNN only Sequential model as illustrated in the paper.
         cnn_only_model = Sequential([
             # Input resized (48x48), normalized (MinMax norm.) and cropped(dlib) gray-scaled image 
-            Conv2D(64,(5,5), activation='relu', input_shape=INPUT_SHAPE), 
+            Input(shape=INPUT_SHAPE, name='ConvInput'),
+            Conv2D(64,(5,5), activation='relu'), 
             MaxPooling2D(pool_size=(2,2), strides=2),
             #
             Conv2D(128,(3,3), activation='relu'), 
@@ -134,7 +170,7 @@ class EmotionsNetwork:
         
         """
             This method returns the trained cnn_only model. If the model has already been
-            trained, use the trained model instead. Else, trains the current cnn_only model
+            trained, it uses the trained model. Otherwise, it trains the current cnn_only model
             and returns it.
         """
         
@@ -145,11 +181,13 @@ class EmotionsNetwork:
             self.train_cnn_only_model()
             return self.cnn_only_model
     
-    def get_cnn_landmarks_model(self):
-        self.cnn_landmarks_model.compile(loss=LOSS, optimizer="adam", metrics=["accuracy"])
-        return self.cnn_landmarks_model
     
-    def get_conv_layers(self, input_shape = INPUT_SHAPE):
+    def __get_conv_layers(self, input_shape = INPUT_SHAPE):
+        
+        """
+            This method builds the convolution branch of the model.
+        """
+        
         model_in = Input(shape=input_shape, name='ConvInput')
         
         conv1 = Conv2D(64,(5,5), activation='relu')(model_in)
@@ -169,7 +207,12 @@ class EmotionsNetwork:
         
         return model_in, model_out
     
-    def get_landmarks_layers(self, input_shape=(68,2)):
+    
+    def __get_landmarks_layers(self, input_shape=(68,2)):
+        
+        """
+            This method builds the landmarks branch of the model.
+        """
         
         model_in = Input(shape=input_shape, name='LandmarksInput')
         
@@ -191,8 +234,8 @@ class EmotionsNetwork:
         """ 
         
         # Getting the inputs and outputs layers of the two branches
-        conv_model_in, conv_model_out = self.get_conv_layers()
-        landmarks_model_in, landmarks_model_out = self.get_landmarks_layers()
+        conv_model_in, conv_model_out = self.__get_conv_layers()
+        landmarks_model_in, landmarks_model_out = self.__get_landmarks_layers()
         
         # Merging the branches together
         merged_model1 = Concatenate()([landmarks_model_out, conv_model_out])
@@ -207,8 +250,49 @@ class EmotionsNetwork:
         # Model output classified into 7 emotions
         model_out = Dense(7, activation='softmax')(dense2)
         
+        # Assemble the model
         cnn_landmarks_model = Model(inputs=[conv_model_in, landmarks_model_in], outputs=[model_out])
         
         return cnn_landmarks_model
     
+    
+    def train_cnn_landmarks_model(self, save_path=CNN_LANDMARKS_PATH):
+        
+             
+        start_time = datetime.now()
+        print("[INFO] Training cnn_landmarks model. Starting time: ", start_time)
+        
+        # Compiling the model
+        self.cnn_landmarks_model.compile(loss=LOSS, optimizer="adam", metrics=["accuracy"])
+        
+        print("[INFO] Model compiled sucessfully!")
+        
+        # Trainning the model with the datasets
+        self.cnn_landmarks_model.fit(self._train_dataset, 
+                                     epochs=NB_EPOCHS, 
+                                     batch_size=BATCH_SIZE, 
+                                     validation_data=self._test_dataset)
+        
+        finish_time = datetime.now()
+            
+        print("[INFO] Training complete. End time: ", finish_time)
+        print("[INFO] Total training time ", (finish_time - start_time))
+        
+        self.cnn_only_model.save(save_path)
+        
+        print("[INFO] Trained model saved at ", save_path)
+        
+    def get_cnn_landmarks_model(self):
+        
+        """
+            This method returns the trained cnn_landmarks model. If the model has already been
+            trained, it uses the trained model. Otherwise, it trains the current cnn_landmarks model
+            and returns it.
+        """
+        if path.exists(CNN_LANDMARKS_PATH):
+            return load_model(CNN_LANDMARKS_PATH, compile=True)
+        else:
+            print("[INFO] No cnn_landmarks model have been trained.")
+        self.cnn_landmarks_model.compile(loss=LOSS, optimizer="adam", metrics=["accuracy"])
+        return self.cnn_landmarks_model
     
