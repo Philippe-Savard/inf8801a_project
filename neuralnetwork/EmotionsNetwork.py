@@ -75,8 +75,8 @@ class EmotionsNetwork:
         self.__train_landmarks = np.load(TRAIN_LANDMARKS_DATA_PATH)
         self.__test_landmarks = np.load(TEST_LANDMARKS_DATA_PATH)
         
-        self.__train_hog = np.load(TRAIN_HOG_DATA_PATH)
-        self.__test_hog = np.load(TEST_HOG_DATA_PATH)
+        self.__train_hog = np.load(TRAIN_HOG_DATA_PATH,allow_pickle=True)
+        self.__test_hog = np.load(TEST_HOG_DATA_PATH,allow_pickle=True)
 
         # Build all the models """
         self.cnn_only_model = self.__build_cnn_only_model()
@@ -349,7 +349,7 @@ class EmotionsNetwork:
         
         return cnn_landmarks_hog_model
     
-    def train_cnn_landmarks__hog_model(self, save_path=CNN_LANDMARKS_HOG_PATH):
+    def train_cnn_landmarks_hog_model(self, save_path=CNN_LANDMARKS_HOG_PATH):
         
         start_time = datetime.now()
         print("[INFO] Training cnn_landmarks model. Starting time: ", start_time)
@@ -373,4 +373,18 @@ class EmotionsNetwork:
         self.cnn_landmarks_hog_model.save(save_path)
         
         print("[INFO] Trained model saved at ", save_path)
+
+    def get_cnn_landmarks_hog_model(self):
         
+        """
+            This method returns the trained cnn_landmarks model. If the model has already been
+            trained, it uses the trained model. Otherwise, it trains the current cnn_landmarks model
+            and returns it.
+        """
+        
+        if path.exists(CNN_LANDMARKS_HOG_PATH):
+            return load_model(CNN_LANDMARKS_HOG_PATH, compile=True)
+        else:
+            print("[INFO] No cnn_landmarks model have been trained.")
+            self.train_cnn_landmarks_hog_model()
+        return self.cnn_landmarks_hog_model

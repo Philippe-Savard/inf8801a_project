@@ -44,7 +44,8 @@ def get_landmarks(image, rects):
     return np.matrix([[p.x, p.y] for p in predictor(image, rects[0]).parts()])
 
 def compute_HOG(image):
-    fd = hog(image, orientations=8, pixels_per_cell=(8, 8),cells_per_block=(1, 1), visualize=True, feature_vector = True, channel_axis=-1)
+    fd = hog(image, orientations=8, pixels_per_cell=(16, 16),cells_per_block=(1, 1), visualize=False, feature_vector = True)
+    print(fd.shape)
     return fd
 
 
