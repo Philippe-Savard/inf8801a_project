@@ -299,7 +299,7 @@ class EmotionsNetwork:
     #                                    CNN + LANDMARKS + HOG                               # 
     #========================================================================================#
     
-    def __get_hog_layers(self, input_shape=(36,)):
+    def __get_hog_layers(self, input_shape=(72,)):
         
         """
             This method builds the hog's branch of the model.
