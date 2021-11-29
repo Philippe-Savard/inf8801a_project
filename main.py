@@ -16,11 +16,13 @@ print("[INFO] Scanning for trained neural networks...")
 
 # Load trained model 
 cnn = EmotionsNetwork()
-#cnn_landmarks_model = cnn.get_cnn_landmarks_model()
-#cnn_landmarks_model.summary()
+cnn_landmarks_model = cnn.get_cnn_landmarks_model()
+cnn_landmarks_model.summary()
+
 cnn_only_model = cnn.get_cnn_only_model()
-cnn_only_model.summary()
-#plot_model(cnn_landmarks_model)
+cnn_landmarks_model = cnn.get_cnn_landmarks_model()
+cnn_landmarks_model.summary()
+
 # DLIB FACE DETECTOR AND KEYPOINTS PREDICTOR 
 detector = dlib.get_frontal_face_detector()
 
@@ -86,9 +88,10 @@ while True:
     
             # Normalizing the region using MinMax normalization
             normRoi = cv2.normalize(resizedRoi, resizedRoi, np.min(resizedRoi), np.max(resizedRoi), cv2.NORM_MINMAX)
+            unitRoi = normRoi / 255.0
             
             # Reshape the ROI to fit the network input shape            
-            reshapedRoi = normRoi.reshape(1,48,48,1)
+            reshapedRoi = unitRoi.reshape(1,48,48,1)
             
             # Get the probability of each classified emotions from the network 
             emotionsProb = cnn_only_model.predict(reshapedRoi)

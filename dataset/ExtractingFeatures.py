@@ -6,6 +6,7 @@ import dlib
 import numpy as np
 from datetime import datetime
 
+
 # DLIB KEYPOINTS PREDICTOR 
 p = "../shape_predictor_68_face_landmarks.dat"
 predictor = dlib.shape_predictor(p)
@@ -86,18 +87,19 @@ for path in train_paths:
     grayFrame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
-    landmark = get_landmarks(grayFrame, face_rects)
+    landmark = get_landmarks(grayFrame, face_rects) / 48
     
     emotion_name = os.path.basename(os.path.dirname(path))
-    outputLabel = np.zeros((1, 7))
-    outputLabel[0, emotions[emotion_name]] = 1
+    outputLabel = np.zeros((7))
+    outputLabel[emotions[emotion_name]] = 1
+
     images.append(grayFrame)
     landmarks.append(landmark) 
     labels.append(outputLabel)
 
 images = [ x / 255 for x in images]
-images = [ x.reshape(1,48,48,1) for x in images]
-    
+images = [ x.reshape(48,48,1) for x in images]
+
 np.save(TRAIN_IMAGE_PATH, images)
 np.save(TRAIN_LANDMARKS_PATH, landmarks)
 np.save(TRAIN_LABELS_PATH, labels)
@@ -124,18 +126,18 @@ for path in test_paths:
     grayFrame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
     face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
-    landmark = get_landmarks(grayFrame, face_rects)
+    landmark = get_landmarks(grayFrame, face_rects) / 48
     
     emotion_name = os.path.basename(os.path.dirname(path))
-    outputLabel = np.zeros((1, 7))
-    outputLabel[0, emotions[emotion_name]] = 1
+    outputLabel = np.zeros((7))
+    outputLabel[emotions[emotion_name]] = 1
 
     images.append(grayFrame)
     landmarks.append(landmark) 
     labels.append(outputLabel)
 
 images = [ x / 255 for x in images]
-images = [ x.reshape(1,48,48,1) for x in images]
+images = [ x.reshape(48,48,1) for x in images]
 
 np.save(TEST_IMAGE_PATH, images)
 np.save(TEST_LANDMARKS_PATH, landmarks)
