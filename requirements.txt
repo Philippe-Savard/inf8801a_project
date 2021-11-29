@@ -1,0 +1,7 @@
+cmake
+dlib
+tensorflow
+numpy
+imutils
+cv2
+glob

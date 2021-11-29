@@ -16,10 +16,8 @@ print("[INFO] Scanning for trained neural networks...")
 
 # Load trained model 
 cnn = EmotionsNetwork()
-cnn_landmarks_model = cnn.get_cnn_landmarks_model()
-cnn_landmarks_model.summary()
-
 cnn_only_model = cnn.get_cnn_only_model()
+cnn_only_model.summary()
 cnn_landmarks_model = cnn.get_cnn_landmarks_model()
 cnn_landmarks_model.summary()
 
