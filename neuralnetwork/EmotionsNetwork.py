@@ -66,14 +66,14 @@ class EmotionsNetwork:
         """
         
         self.history_cnn_only = None
-        self.__train_images = np.load(TRAIN_IMAGES_PATH)
-        self.__train_labels = np.load(TRAIN_LABELS_PATH)
+        self.__train_images = np.load(TRAIN_IMAGES_PATH,allow_pickle=True)
+        self.__train_labels = np.load(TRAIN_LABELS_PATH,allow_pickle=True)
         
-        self.__test_images = np.load(TEST_IMAGES_PATH)
-        self.__test_labels = np.load(TEST_LABELS_PATH)
+        self.__test_images = np.load(TEST_IMAGES_PATH,allow_pickle=True)
+        self.__test_labels = np.load(TEST_LABELS_PATH,allow_pickle=True)
         
-        self.__train_landmarks = np.load(TRAIN_LANDMARKS_DATA_PATH)
-        self.__test_landmarks = np.load(TEST_LANDMARKS_DATA_PATH)
+        self.__train_landmarks = np.load(TRAIN_LANDMARKS_DATA_PATH,allow_pickle=True)
+        self.__test_landmarks = np.load(TEST_LANDMARKS_DATA_PATH,allow_pickle=True)
         
         self.__train_hog = np.load(TRAIN_HOG_DATA_PATH,allow_pickle=True)
         self.__test_hog = np.load(TEST_HOG_DATA_PATH,allow_pickle=True)
@@ -352,7 +352,7 @@ class EmotionsNetwork:
     def train_cnn_landmarks_hog_model(self, save_path=CNN_LANDMARKS_HOG_PATH):
         
         start_time = datetime.now()
-        print("[INFO] Training cnn_landmarks model. Starting time: ", start_time)
+        print("[INFO] Training cnn_landmarks_hog model. Starting time: ", start_time)
         
         # Compiling the model
         self.cnn_landmarks_hog_model.compile(loss=LOSS, optimizer="adam", metrics=["accuracy"])
@@ -385,6 +385,6 @@ class EmotionsNetwork:
         if path.exists(CNN_LANDMARKS_HOG_PATH):
             return load_model(CNN_LANDMARKS_HOG_PATH, compile=True)
         else:
-            print("[INFO] No cnn_landmarks model have been trained.")
+            print("[INFO] No cnn_landmarks_hog model have been trained.")
             self.train_cnn_landmarks_hog_model()
         return self.cnn_landmarks_hog_model
