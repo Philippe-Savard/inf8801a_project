@@ -5,6 +5,7 @@ import cv2
 import dlib
 import numpy as np
 from datetime import datetime
+from skimage.feature import hog
 
 
 # DLIB KEYPOINTS PREDICTOR 
@@ -16,10 +17,12 @@ predictor = dlib.shape_predictor(p)
 TRAIN_IMAGE_PATH = 'ExtractedData/train/images.npy'
 TRAIN_LABELS_PATH = 'ExtractedData/train/labels.npy'
 TRAIN_LANDMARKS_PATH = 'ExtractedData/train/landmarks.npy'
+TRAIN_HOG_PATH = 'ExtractedData/train/hog.npy'
 
 TEST_IMAGE_PATH = 'ExtractedData/test/images.npy'
 TEST_LABELS_PATH = 'ExtractedData/test/labels.npy'
 TEST_LANDMARKS_PATH = 'ExtractedData/test/landmarks.npy'
+TEST_HOG_PATH = 'ExtractedData/test/hog.npy'
 
 # Emotions dictionnary
 emotions = dict({"angry":0,
@@ -39,6 +42,10 @@ def get_landmarks(image, rects):
     if len(rects) == 0:
         raise BaseException("NoFaces")
     return np.matrix([[p.x, p.y] for p in predictor(image, rects[0]).parts()])
+
+def compute_HOG(image):
+    fd = hog(image, orientations=8, pixels_per_cell=(8, 8),cells_per_block=(1, 1), visualize=True, feature_vector = True, channel_axis=-1)
+    return fd
 
 
 
@@ -61,6 +68,9 @@ file.close()
 file = open(TRAIN_LANDMARKS_PATH, "w")
 file.close()
 
+file = open(TRAIN_HOG_PATH, "w")
+file.close()
+
 file = open(TEST_IMAGE_PATH, "w")
 file.close()
 
@@ -70,12 +80,16 @@ file.close()
 file = open(TEST_LANDMARKS_PATH, "w")
 file.close()
 
+file = open(TEST_HOG_PATH, "w")
+file.close()
+
 
 train_paths = glob.glob('FER2013/train'+"/*/*")
 
 images = []
 landmarks = []
 labels = []
+hogs = []
 
 start_time = datetime.now()
 
@@ -92,16 +106,20 @@ for path in train_paths:
     emotion_name = os.path.basename(os.path.dirname(path))
     outputLabel = np.zeros((7))
     outputLabel[emotions[emotion_name]] = 1
-
+    
+    hog_features = compute_HOG(img)
+    
     images.append(grayFrame)
     landmarks.append(landmark) 
     labels.append(outputLabel)
+    hogs.append(hog_features)
 
 images = [ x / 255 for x in images]
 images = [ x.reshape(48,48,1) for x in images]
 
 np.save(TRAIN_IMAGE_PATH, images)
 np.save(TRAIN_LANDMARKS_PATH, landmarks)
+np.save(TRAIN_HOG_PATH, hogs)
 np.save(TRAIN_LABELS_PATH, labels)
 
 end_time = datetime.now()
@@ -115,6 +133,7 @@ test_paths = glob.glob('FER2013/test'+"/*/*")
 images = []
 landmarks = []
 labels = []
+hogs = []
 
 start_time = datetime.now()
 
@@ -132,15 +151,19 @@ for path in test_paths:
     outputLabel = np.zeros((7))
     outputLabel[emotions[emotion_name]] = 1
 
+    hog_features = compute_HOG(img)
+
     images.append(grayFrame)
     landmarks.append(landmark) 
     labels.append(outputLabel)
+    hogs.append(hog_features)
 
 images = [ x / 255 for x in images]
 images = [ x.reshape(48,48,1) for x in images]
 
 np.save(TEST_IMAGE_PATH, images)
 np.save(TEST_LANDMARKS_PATH, landmarks)
+np.save(TEST_HOG_PATH, hogs)
 np.save(TEST_LABELS_PATH, labels)
 
 end_time = datetime.now()
