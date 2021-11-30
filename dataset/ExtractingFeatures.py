@@ -107,7 +107,7 @@ for path in train_paths:
     outputLabel = np.zeros((7))
     outputLabel[emotions[emotion_name]] = 1
     
-    hog_features = compute_HOG(img)
+    hog_features = compute_HOG(grayFrame)
     
     images.append(grayFrame)
     landmarks.append(landmark) 
@@ -151,7 +151,7 @@ for path in test_paths:
     outputLabel = np.zeros((7))
     outputLabel[emotions[emotion_name]] = 1
 
-    hog_features = compute_HOG(img)
+    hog_features = compute_HOG(grayFrame)
 
     images.append(grayFrame)
     landmarks.append(landmark) 

@@ -19,7 +19,7 @@ from os import path
 from keras.models import Model
 import numpy as np
 
-NB_EPOCHS = 13
+NB_EPOCHS = 15
 BATCH_SIZE = 128
 TARGET_SIZE = (48, 48)
 INPUT_SHAPE = (48, 48, 1)
@@ -42,7 +42,7 @@ TEST_IMAGES_PATH = 'dataset/ExtractedData/test/images.npy'
 TEST_LABELS_PATH = 'dataset/ExtractedData/test/labels.npy'
 
 TEST_LANDMARKS_DATA_PATH = 'dataset/ExtractedData/test/landmarks.npy'
-TEST_HOG_DATA_PATH = 'dataset/ExtractedData/train/hog.npy'
+TEST_HOG_DATA_PATH = 'dataset/ExtractedData/test/hog.npy'
 
 
 class EmotionsNetwork:
@@ -66,6 +66,9 @@ class EmotionsNetwork:
         """
         
         self.history_cnn_only = None
+        self.history_cnn_landmarks = None
+        self.history_cnn_landmarks_hog = None
+        
         self.__train_images = np.load(TRAIN_IMAGES_PATH,allow_pickle=True)
         self.__train_labels = np.load(TRAIN_LABELS_PATH,allow_pickle=True)
         
@@ -138,10 +141,10 @@ class EmotionsNetwork:
         print("[INFO] Model compiled sucessfully!")
         
         # Trainning the model with the data
-        self.cnn_only_model.fit(self.__train_images, self.__train_labels, 
-                                validation_data=(self.__test_images, self.__test_labels),
-                                epochs=NB_EPOCHS, 
-                                batch_size=BATCH_SIZE)
+        self.history_cnn_only = self.cnn_only_model.fit(self.__train_images, self.__train_labels, 
+                                                        validation_data=(self.__test_images, self.__test_labels),
+                                                        epochs=NB_EPOCHS, 
+                                                        batch_size=BATCH_SIZE)
         
         finish_time = datetime.now()
             
@@ -263,7 +266,7 @@ class EmotionsNetwork:
         print("[INFO] Model compiled sucessfully!")
        
         # Trainning the model with the datasets
-        self.cnn_landmarks_model.fit([self.__train_images, self.__train_landmarks], self.__train_labels, 
+        self.history_cnn_landmarks = self.cnn_landmarks_model.fit([self.__train_images, self.__train_landmarks], self.__train_labels, 
                                      validation_data=([self.__test_images, self.__test_landmarks], self.__test_labels),
                                      epochs=NB_EPOCHS, 
                                      batch_size=BATCH_SIZE)
@@ -299,7 +302,7 @@ class EmotionsNetwork:
     #                                    CNN + LANDMARKS + HOG                               # 
     #========================================================================================#
     
-    def __get_hog_layers(self, input_shape=(72,)):
+    def __get_hog_layers(self, input_shape=(72, 1)):
         
         """
             This method builds the hog's branch of the model.
@@ -307,7 +310,7 @@ class EmotionsNetwork:
         
         model_in = Input(shape=input_shape, name='HogInput')
         
-        dense1 = Dense(140, activation='relu')(model_in)
+        dense1 = Dense(72, activation='relu')(model_in)
         flat1 = Flatten()(dense1)
         
         model_out = Dense(128, activation='relu') (flat1)
@@ -360,10 +363,11 @@ class EmotionsNetwork:
         print("[INFO] Model compiled sucessfully!")
        
         # Trainning the model with the datasets
-        self.cnn_landmarks_hog_model.fit([self.__train_images, self.__train_landmarks,self.__train_hog], self.__train_labels, 
-                                     validation_data=([self.__test_images, self.__test_landmarks,self.__test_hog], self.__test_labels),
-                                     epochs=NB_EPOCHS, 
-                                     batch_size=BATCH_SIZE)
+        self.history_cnn_landmarks_hog = self.cnn_landmarks_hog_model.fit(
+                                    [self.__train_images, self.__train_landmarks, self.__train_hog], self.__train_labels, 
+                                    validation_data=([self.__test_images, self.__test_landmarks, self.__test_hog], self.__test_labels),
+                                    epochs=NB_EPOCHS, 
+                                    batch_size=BATCH_SIZE)
         
         finish_time = datetime.now()
             
