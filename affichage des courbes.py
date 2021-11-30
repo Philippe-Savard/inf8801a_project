@@ -39,9 +39,11 @@ l2 = [0.3277,
  0.5333,
  0.5337]
 
+l3 = [0.3576 , 0.4245 , 0.4472 , 0.4482 , 0.4400 , 0.4798 , 0.4804 , 0.4928 , 0.5010 , 0.5022 , 0.5040 , 0.5146 , 0.5223 , 0.5273 , 0.5382] 
 x = np.linspace(1,15,15)
 plt.plot(x,l1,label="cnn")
 plt.plot(x,l2,label="cnn + landmarks")
+plt.plot(x,l3,label="cnn + landmarks + HOG")
 plt.legend()
 plt.xlabel("epochs")
 plt.ylabel("accuracy on validation set")
