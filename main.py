@@ -8,6 +8,34 @@ from imutils import face_utils
 import dlib
 from neuralnetwork.EmotionsNetwork import EmotionsNetwork
 from tensorflow.keras.utils import plot_model
+import matplotlib.pyplot as plt
+
+
+
+def print_stats(history, name):
+    if not history == None:
+        plt.plot(history.history['accuracy'])
+        plt.plot(history.history['val_accuracy'])
+        plt.title(name + 'model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        plt.savefig(name + 'Accuracy')
+        
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title(name + 'model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        plt.savefig(name + 'Loss')
+    else:
+        print("[INFO] No data to plot.")
+
+
 
 # Classified emotions
 EMOTIONS = ["Angry", "Disgust", "Fear", "Happy", "Neutral", "Sad", "Surprise", "NONE"]
@@ -16,14 +44,22 @@ print("[INFO] Scanning for trained neural networks...")
 
 # Load trained model 
 cnn = EmotionsNetwork()
+
 cnn_only_model = cnn.get_cnn_only_model()
 cnn_only_model.summary()
+print_stats(cnn.history_cnn_only, 'cnn_only')
+
 cnn_landmarks_model = cnn.get_cnn_landmarks_model()
 cnn_landmarks_model.summary()
+print_stats(cnn.history_cnn_landmarks, 'cnn_with_landmarks')
+
 cnn_landmarks_hog_model = cnn.get_cnn_landmarks_hog_model()
 cnn_landmarks_hog_model.summary()
+print_stats(cnn.history_cnn_landmarks_hog, 'cnn_with_landmarks_hog')
+
 # DLIB FACE DETECTOR AND KEYPOINTS PREDICTOR 
 detector = dlib.get_frontal_face_detector()
+
 
 p = "shape_predictor_68_face_landmarks.dat"
 predictor = dlib.shape_predictor(p)
