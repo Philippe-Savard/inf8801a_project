@@ -9,6 +9,7 @@ import numpy as np
 from imutils import face_utils
 import dlib
 from neuralnetwork.EmotionsNetwork import EmotionsNetwork
+from EmotionsNetwork import compute_HOG
 from tensorflow.keras.utils import plot_model
 import matplotlib.pyplot as plt
 from os import path
@@ -185,7 +186,11 @@ while True:
                     elif USE_LANDMARKS_HOG:
                         if hog_success:
                         # Get the probability of each classified emotions from the network
-                        emotionsProb = cnn_landmarks_hog_model.predict(reshapedRoi)
+                        hog
+                        normalized_landmarks = landmarks/48
+                        reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
+                        fd = compute_HOG(reshapedRoi)
+                        emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi,reshaped_landmarks,fd])
 
                     else:
                         if cnn_success:
