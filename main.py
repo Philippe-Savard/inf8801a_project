@@ -190,6 +190,7 @@ while True:
                             reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
                             fd = compute_HOG(reshapedRoi)
                             emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi,reshaped_landmarks,fd])
+
                     else:
                         if cnn_success:
                             # Get the probability of each classified emotions from the network
