@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 30 02:09:22 2021
+This file was used in order to generate the HOG example in the in-class presentation.
 
-@author: gp570
+@authors Philippe Savard & Gaspard Petitclair
 """
 
 import matplotlib.pyplot as plt
 
 from skimage.feature import hog
-from skimage import data, exposure
+from skimage import exposure
 from skimage.io import imread
 
 path = "face_surprise.PNG"
