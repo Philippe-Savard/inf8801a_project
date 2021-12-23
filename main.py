@@ -189,7 +189,7 @@ while True:
             # Warning if missing the predictor file
             cv2.putText(frame, "Oops! Please download the shape_predictor_68_face_landmarks.dat file", (0, 100), cv2.FONT_HERSHEY_PLAIN, 1.00, (0, 0, 255), 2)
        
-        # Display the emotion as text on the screen
+        # Display keyboard input menu
         cv2.putText(frame, "Press [ESC] to quit", (0, 18), cv2.FONT_HERSHEY_PLAIN, 1.25, (0, 255, 0), 2)
 
         # Display the frame
