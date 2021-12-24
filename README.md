@@ -23,10 +23,14 @@ https://github.com/italojs/facial-landmarks-recognition/blob/master/shape_predic
 
 Ensuite, placez ce fichier dans le répertoire du projet.
 
+![image](https://user-images.githubusercontent.com/65316883/147311704-24ae6c04-7fab-41d3-a837-b5d3b5a8d231.png)
+
 # Entraînement
 
 Si vous souhaitez entraîner les réseaux, il faut télécharger le dataset « FER2013 » et insérer son contenu dans le dossier « dataset/FER2013 » prévu à cet effet dans le répertoire du projet. Vous pouvez télécharger le dataset directement sur le git du projet ou au lien suivant : https://www.kaggle.com/msambare/fer2013 
 *note : le fichier FER2013 doit contenir uniquement les fichiers « train » et « test ». Ceux-ci contiennent les sous-fichiers correspondant aux 7 émotions.
+
+![image](https://user-images.githubusercontent.com/65316883/147311717-68a098c8-e3eb-4274-bede-366f9f8aee7d.png)
 
 Alternativement, les 3 réseaux que nous avons entraînés dans le cadre de ce projet sont disponibles directement sur le git du projet. Veuillez noter que le troisième réseau "CNN+landmarks+HOG" dépassait la limite de mémoire autorisée pour le rendu du projet et n’est donc pas inclus dans le fichier de remise. 
 
@@ -47,12 +51,17 @@ Vous aurez ainsi la possibilité d'utiliser le troisième réseau:
 -	CNN + LANDMARKS + HOG
 
 Pour sélectionner un autre réseau que celui par défaut, il suffit de modifier une des variables des ligne 20 et 21 du main.py (USE_LANDMARKS = False ou USE_LANDMARKS_HOG = False) par la valeur True.
+
+![image](https://user-images.githubusercontent.com/65316883/147311739-f64c138b-2d45-448b-9ee6-73e7d05c7806.png)
+
 La prédiction se fera alors via un autre de nos réseaux.
 
 # Pour aller un peu plus loin
 
 Il vous est possible de réentraîner nos réseaux. Ce n'est pas nécessaire, mais cela peut être utile pour améliorer les performances.
 Pour cela, téléchargez la base de données depuis notre git comme il a été mentionné précédemment. Assurez-vous de l'installer dans le répertoire "dataset". Dans le EmotionsNetwork.py, ajoutez le paramètre « True » à la fonction self.load_data() à la ligne 135. Cela permet d’assurer que vous extrayez de nouveau les données du dataset. 
+
+![image](https://user-images.githubusercontent.com/65316883/147311751-24280e2f-07c0-4ae0-8bed-62c14a07973c.png)
 
 Vous pouvez ensuite lancer le main.py. Cela va prendre un certain temps (quelques minutes). Des logs interactifs sont imprimés dans la console pendant l’exécution.
 Vous pouvez retirer le paramètre « True » de la fonction self.load_data() une fois les données extraites (pour sauver du temps).
