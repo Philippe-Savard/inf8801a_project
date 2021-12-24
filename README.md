@@ -59,6 +59,6 @@ La prédiction se fera alors via un autre de nos réseaux !
 # POUR CONTINUER
 
 Il vous est possible de réentraîner nos réseaux. Ce n'est pas nécessaire, mais cela peut être utile pour améliorer les performances.
-Pour cela, télécharger la base de donnée depuis notre git, l'installer dans le répertoire "dataset", et de lancer le main.
+Pour cela, télécharger la base de donnée depuis notre git, l'installer dans le répertoire "dataset", et de lancer le main. Cela va prendre un certain temps !
 Pour changer les paramètres d'entraînement, il faut explorer le fichier "dataset/EmotionsNetwork.py" ! 
 
