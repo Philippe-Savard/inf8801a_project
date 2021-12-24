@@ -115,34 +115,34 @@ while True:
     try:
         # Read frames from the webcam
         _, frame = webcam.read()
-
+    
         # Making sure the shape predictor exist (for resizing)
         if predictor != None:
-
+    
             # Converting the frame into the grayscale color space
             grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
+    
             # Detect faces in the grayscale image
             faces = detector(grayFrame, 0)
-
+    
             # For all faces in the frame
             for (i, face) in enumerate(faces):
-
+    
                 # Finding the facial landmarks
                 landmarks = predictor(grayFrame, face)
-
+    
                 # Converts the landmarks into a 2D numpy array of x, y coordinnates
                 landmarks = face_utils.shape_to_np(landmarks)
-
+    
                 # Extract default landmarks
                 minX = landmarks[i][0]
                 maxX = landmarks[i][0]
                 minY = landmarks[i][1]
                 maxY = landmarks[i][1]
-
+    
                 # Draw the landmarks (dots) on the preview image
                 for (x, y) in landmarks:
-
+    
                     # Update the keypoints boundaries
                     if minX > x:
                         minX = x
@@ -152,73 +152,78 @@ while True:
                         minY = y
                     if maxY < y:
                         maxY = y
-
+    
                     cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
-
+    
                 # Draw the boundary around the face
                 cv2.rectangle(frame, (minX, maxY), (maxX, minY), (0, 255, 0), 1)
-
+    
                 # Extract region of interest (the face) from the frame
                 roi = grayFrame[minY: maxY, minX: maxX]
-
+    
                 # Check if a face has been extracted from the frame
                 if len(roi) > 0:
-
+    
                     # Resizing the input for it to be 48x48
                     resizedRoi = cv2.resize(roi, (48, 48))
-
+    
                     # Normalizing the region using MinMax normalization
                     normRoi = cv2.normalize(resizedRoi, resizedRoi, np.min(resizedRoi), np.max(resizedRoi), cv2.NORM_MINMAX)
                     unitRoi = normRoi / 255.0
-
+    
                     # Reshape the ROI to fit the network input shape
                     reshapedRoi = unitRoi.reshape(1, 48, 48, 1)
-
+    
                     emotionsProb = [0, 0, 0, 0, 0, 0, 0, 1]
-
-                    if USE_LANDMARKS:
-                        if landmarks_success:
-                            # Get the probability of each classified emotions from the network
-                            face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
-                            normalized_landmarks = get_landmarks(reshapedRoi, face_rects) /
-                            reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
-                            emotionsProb = cnn_landmarks_model.predict([reshapedRoi,reshaped_landmarks])
-
-                    elif USE_LANDMARKS_HOG:
-                        if hog_success:
-                            # Get the probability of each classified emotions from the network
-                            face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
-                            normalized_landmarks = get_landmarks(reshapedRoi, face_rects) / 48
-                            reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
-                            fd = compute_HOG(reshapedRoi)
-                            emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi,reshaped_landmarks,fd])
-
+                    
+                    # Landmarks option is selected
+                    if USE_LANDMARKS and landmarks_success:
+                        # Get the probability of each classified emotions from the network
+                        face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
+                        normalized_landmarks = get_landmarks(resizedRoi, face_rects) /48
+                        reshaped_landmarks= np.reshape(np.array(normalized_landmarks),(1, 68, 2))
+                        
+                        # Get the probability of each classified emotions from the network
+                        emotionsProb = cnn_landmarks_model.predict([reshapedRoi,reshaped_landmarks])
+                        
+                    # HOG option is selected
+                    elif USE_LANDMARKS_HOG and hog_success:
+                        # Get the probability of each classified emotions from the network
+                        face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
+                        normalized_landmarks = get_landmarks(resizedRoi, face_rects) / 48
+                        reshaped_landmarks= np.reshape(np.array(normalized_landmarks),(1, 68, 2))
+                        fd = compute_HOG(resizedRoi)
+                        reshaped_fd = np.reshape(np.array(fd), (1, 72, 1))
+                        
+                        # Get the probability of each classified emotions from the network
+                        emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi,reshaped_landmarks,reshaped_fd])
+                        
+                    # Default CNN Only
+                    elif cnn_success:
+                        # Get the probability of each classified emotions from the network
+                        emotionsProb = cnn_only_model.predict(reshapedRoi)
                     else:
-                        if cnn_success:
-                            # Get the probability of each classified emotions from the network
-                            emotionsProb = cnn_only_model.predict(reshapedRoi)
-
-
-
+                        raise
+                        
                     # Extract the index of the highest probability
                     result = np.argmax(emotionsProb)
-
+    
                     # Display the emotion as text on the screen
                     cv2.putText(frame, EMOTIONS[result], (minX, maxY + 18), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
-
+    
                     # Display the face region after normalization
                     cv2.imshow("FACE ROI #" + str(i), normRoi)
-
+    
         else:
             # Warning if missing the predictor file
             cv2.putText(frame, "Oops! Please download the shape_predictor_68_face_landmarks.dat file", (0, 100), cv2.FONT_HERSHEY_PLAIN, 1.00, (0, 0, 255), 2)
-
+    
         # Display keyboard input menu
         cv2.putText(frame, "Press [ESC] to quit", (0, 18), cv2.FONT_HERSHEY_PLAIN, 1.25, (0, 255, 0), 2)
-
+    
         # Display the frame
         cv2.imshow("Facial Emotion Detection", frame)
-
+    
         # Wait for ESC key input to close application
         key = cv2.waitKey(20)
         if key == 27:  # exit on ESC
