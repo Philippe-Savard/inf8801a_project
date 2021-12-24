@@ -1,6 +1,4 @@
-# Projet dans le cadre du cours d'Applications multimédias - INF8801A à l'École Polytechnique de Montréal
-# Soumis à Lama Séoud le 23 décembre 2022
-
+# Projet de session du cours d'Applications multimédias - INF8801A
 # Implémentation the l'article : Real-Time Facial Emotion Recognition System With Improved Preprocessing and Feature Extraction
 https://ieeexplore.ieee.org/abstract/document/9214207?casa_token=Nle3kbDqfgcAAAAA:GJ8M-hG8MgQA9vOT3D8akbq-sUG4-fwZZ3J8IW0VyhmRkNWg-ZGl2j-q2vwnwOwdpuSrp1cNfh8 
 
