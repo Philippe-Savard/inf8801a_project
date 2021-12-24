@@ -16,12 +16,13 @@ from os import path
 
 PLOT_MODELS = False
 
+# Use alternative models for emotions detection
+USE_LANDMARKS = False
+USE_LANDMARKS_HOG = False
+
 # Classified emotions
 EMOTIONS = ["Angry", "Disgust", "Fear", "Happy",
             "Neutral", "Sad", "Surprise", "NONE"]
-
-USE_LANDMARKS = False
-USE_LANDMARKS_HOG = False
 
 
 def print_stats(history, name):
@@ -185,32 +186,24 @@ while True:
                     # Landmarks option is selected
                     if USE_LANDMARKS and landmarks_success:
                         # Get the probability of each classified emotions from the network
-                        face_rects = [dlib.rectangle(
-                            left=1, top=1, right=47, bottom=47)]
-                        normalized_landmarks = get_landmarks(
-                            resizedRoi, face_rects) / 48
-                        reshaped_landmarks = np.reshape(
-                            np.array(normalized_landmarks), (1, 68, 2))
+                        face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
+                        normalized_landmarks = get_landmarks(resizedRoi, face_rects) / 48
+                        reshaped_landmarks = np.reshape(np.array(normalized_landmarks), (1, 68, 2))
 
                         # Get the probability of each classified emotions from the network
-                        emotionsProb = cnn_landmarks_model.predict(
-                            [reshapedRoi, reshaped_landmarks])
+                        emotionsProb = cnn_landmarks_model.predict([reshapedRoi, reshaped_landmarks])
 
                     # HOG option is selected
                     elif USE_LANDMARKS_HOG and hog_success:
                         # Get the probability of each classified emotions from the network
-                        face_rects = [dlib.rectangle(
-                            left=1, top=1, right=47, bottom=47)]
-                        normalized_landmarks = get_landmarks(
-                            resizedRoi, face_rects) / 48
-                        reshaped_landmarks = np.reshape(
-                            np.array(normalized_landmarks), (1, 68, 2))
+                        face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
+                        normalized_landmarks = get_landmarks(resizedRoi, face_rects) / 48
+                        reshaped_landmarks = np.reshape(np.array(normalized_landmarks), (1, 68, 2))
                         fd = compute_HOG(resizedRoi)
                         reshaped_fd = np.reshape(np.array(fd), (1, 72, 1))
 
                         # Get the probability of each classified emotions from the network
-                        emotionsProb = cnn_landmarks_hog_model.predict(
-                            [reshapedRoi, reshaped_landmarks, reshaped_fd])
+                        emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi, reshaped_landmarks, reshaped_fd])
 
                     # Default CNN Only
                     elif cnn_success:

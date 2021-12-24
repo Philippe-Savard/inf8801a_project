@@ -174,6 +174,8 @@ class EmotionsNetwork:
             # Prevent user mistakes while handling files
             print("[ERROR] An unexpected error occurred while loading the data")
             return False
+    
+    
     #========================================================================================#
     #                                    CNN                                                 # 
     #========================================================================================#
