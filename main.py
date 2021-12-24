@@ -180,8 +180,8 @@ while True:
                         if landmarks_success:
                             # Get the probability of each classified emotions from the network
                             face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
-                            normalized_landmarks = get_landmarks(reshapedRoi, face_rects) /
-                            reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
+                            normalized_landmarks = get_landmarks(reshapedRoi, face_rects) / 48
+                            reshaped_landmarks = normalized_landmarks.reshape(1,68,2)
                             emotionsProb = cnn_landmarks_model.predict([reshapedRoi,reshaped_landmarks])
 
                     elif USE_LANDMARKS_HOG:
@@ -189,7 +189,7 @@ while True:
                             # Get the probability of each classified emotions from the network
                             face_rects = [dlib.rectangle(left=1, top=1, right=47, bottom=47)]
                             normalized_landmarks = get_landmarks(reshapedRoi, face_rects) / 48
-                            reshaped_landmarks= normalized_landmarks.reshape(1,68,2)
+                            reshaped_landmarks = normalized_landmarks.reshape(1,68,2)
                             fd = compute_HOG(reshapedRoi)
                             emotionsProb = cnn_landmarks_hog_model.predict([reshapedRoi,reshaped_landmarks,fd])
 
